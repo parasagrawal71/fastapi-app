@@ -10,26 +10,26 @@ class Item(BaseModel):
     task: str
 
 
-@router.get("/items")
+@router.get("/dummy_items")
 def getItems():
     return fakeDatabase
 
 
-@router.get("/items/{id}")
+@router.get("/dummy_items/{id}")
 def getItem(id: int):
     if id not in fakeDatabase:
         return "Id not found"
     return fakeDatabase[id]
 
 
-@router.post("/items")
+@router.post("/dummy_items")
 def addItem(body: Item):
     newId = len(fakeDatabase.keys()) + 1
     fakeDatabase[newId] = body
     return fakeDatabase[newId]
 
 
-@router.put("/items/{id}")
+@router.put("/dummy_items/{id}")
 def updateItem(id: int, body=Body()):
     if id not in fakeDatabase:
         return "Id not found"
@@ -37,7 +37,7 @@ def updateItem(id: int, body=Body()):
     return fakeDatabase[id]
 
 
-@router.delete("/items/{id}")
+@router.delete("/dummy_items/{id}")
 def deleteItem(id: int):
     if id not in fakeDatabase:
         return "Id not found"
@@ -47,6 +47,6 @@ def deleteItem(id: int):
 
 # References:
 # https://betterprogramming.pub/my-first-crud-app-with-fast-api-74ac190d2dcc
-# https://github.com/KenMwaura1/Fast-Api-example
+# https://github.com/KenMwaura1/Fast-Api-example - Break down APIs into modules
 # DOCS
 # https://fastapi.tiangolo.com
