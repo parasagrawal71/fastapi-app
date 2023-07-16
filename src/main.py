@@ -1,7 +1,9 @@
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
+# CUSTOM IMPORTs
 from src.api import items
+from src.config import config
 
 app = FastAPI()
 
@@ -23,7 +25,7 @@ def healthcheck():
 
 @app.on_event("startup")
 def startup():
-    print("Starting fastapi server...")
+    print("Starting {appName}...".format(appName=config.APP_NAME))
 
 
 @app.on_event("shutdown")

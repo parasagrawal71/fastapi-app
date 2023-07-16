@@ -1,3 +1,5 @@
 # pip3 install -r requirements.txt
 fastapi
 uvicorn
+pydantic_settings
+python-dotenv
