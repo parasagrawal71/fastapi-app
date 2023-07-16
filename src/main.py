@@ -4,7 +4,7 @@ from pymongo import MongoClient
 
 
 # CUSTOM IMPORTs
-from src.api import dummy_items
+from src.api import dummy_items, items
 from src.config import config
 
 app = FastAPI()
@@ -43,3 +43,4 @@ def shutdown():
 
 
 app.include_router(dummy_items.router)
+app.include_router(items.router)

@@ -1,52 +1,57 @@
-from fastapi import APIRouter, Body
+from fastapi import APIRouter, Body, Request
 from pydantic import BaseModel
+from fastapi.encoders import jsonable_encoder
+from bson import ObjectId, json_util
 
 router = APIRouter()
-
-fakeDatabase = {1: {"task": "Clean bike"}, 2: {"task": "Workout"}, 3: {"task": "Study"}}
 
 
 class Item(BaseModel):
     task: str
 
 
-@router.get("/dummy_items")
-def getItems():
-    return fakeDatabase
+@router.get("/items")
+def getItems(request: Request):
+    items = list(request.app.database["items"].find({}))
+    for item in items:
+        item["_id"] = str(item["_id"])
+    return items
 
 
-@router.get("/dummy_items/{id}")
-def getItem(id: int):
-    if id not in fakeDatabase:
+@router.get("/items/{id}")
+def getItem(request: Request, id: str):
+    item = request.app.database["items"].find_one({"_id": ObjectId(id)})
+    if item is None:
         return "Id not found"
-    return fakeDatabase[id]
+    item["_id"] = str(item["_id"])
+    return item
 
 
-@router.post("/dummy_items")
-def addItem(body: Item):
-    newId = len(fakeDatabase.keys()) + 1
-    fakeDatabase[newId] = body
-    return fakeDatabase[newId]
+@router.post("/items")
+def addItem(request: Request, body: Item):
+    body = jsonable_encoder(body)
+    new_item = request.app.database["items"].insert_one(body)
+    created_item = request.app.database["items"].find_one({"_id": new_item.inserted_id})
+    created_item["_id"] = str(created_item["_id"])
+    return created_item
 
 
-@router.put("/dummy_items/{id}")
-def updateItem(id: int, body=Body()):
-    if id not in fakeDatabase:
+@router.put("/items/{id}")
+def updateItem(request: Request, id: str, body=Body()):
+    update_result = request.app.database["items"].update_one(
+        {"_id": ObjectId(id)}, {"$set": body}
+    )
+    if update_result.matched_count == 0:
         return "Id not found"
-    fakeDatabase[id] = body
-    return fakeDatabase[id]
+
+    item = request.app.database["items"].find_one({"_id": ObjectId(id)})
+    item["_id"] = str(item["_id"])
+    return item
 
 
-@router.delete("/dummy_items/{id}")
-def deleteItem(id: int):
-    if id not in fakeDatabase:
-        return "Id not found"
-    del fakeDatabase[id]
-    return id
-
-
-# References:
-# https://betterprogramming.pub/my-first-crud-app-with-fast-api-74ac190d2dcc
-# https://github.com/KenMwaura1/Fast-Api-example - Break down APIs into modules
-# DOCS
-# https://fastapi.tiangolo.com
+@router.delete("/items/{id}")
+def deleteItem(request: Request, id: str):
+    delete_result = request.app.database["items"].delete_one({"_id": ObjectId(id)})
+    if delete_result.deleted_count == 1:
+        return id
+    return "Id not found"
