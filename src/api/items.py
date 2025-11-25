@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Body, Request
+from fastapi import APIRouter, Body, Request, Depends
 from pydantic import BaseModel
 from fastapi.encoders import jsonable_encoder
 from bson import ObjectId, json_util
+from src.middlewares.items_middleware import items_common_logger, get_items_logger
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(items_common_logger)]) # middleware to multiple routes in a router
 
 
 class Item(BaseModel):
@@ -11,7 +12,9 @@ class Item(BaseModel):
 
 
 @router.get("/items")
-def getItems(request: Request):
+def getItems(
+    request: Request, _=Depends(get_items_logger)
+):  # middleware to only one route
     items = list(request.app.database["items"].find({}))
     for item in items:
         item["_id"] = str(item["_id"])

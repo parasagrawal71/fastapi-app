@@ -1,6 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from starlette.middleware.cors import CORSMiddleware
 from pymongo import MongoClient
+import time
 
 
 # CUSTOM IMPORTs
@@ -18,6 +19,21 @@ app.add_middleware(
     allow_methods=["*"], # ["DELETE", "GET", "POST", "PUT"]
     allow_headers=["*"],
 )
+
+# --------------------
+# Add Middleware to log response time (middleware to all routes)
+# --------------------
+@app.middleware("http")
+async def log_request_middleware(request: Request, call_next):
+    start = time.time()
+
+    # Process request
+    response = await call_next(request)
+
+    duration = time.time() - start
+    print(f"{request.method} {request.url.path} took {duration:.4f}s")
+
+    return response
 
 
 # @app.get("/health")
